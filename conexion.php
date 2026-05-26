@@ -3,7 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Credenciales nuevas de tu base de datos en Railway
-$host     = "mysql.railway.internal";
+$host     = "kodama.proxy.rlwy.net";
 $usuario  = "root"; // En Railway el usuario por defecto casi siempre es root
 $password = "MJWluisAMAblEzNdnRRbXltbnPrRLlTx";
 $db_name  = "railway"; // En Railway la base de datos automática se llama railway
