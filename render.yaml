@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: sistema-inventario-ebenezer
+    runtime: php
+    buildCommand: echo "Build no requerido"
+    startCommand: heroku-php-apache2
