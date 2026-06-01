@@ -1,5 +1,5 @@
 <?php
-    date_default_timezone_set('America/Managua');
+date_default_timezone_set('America/Managua');
 session_start();
 if (!isset($_SESSION['usuario'])) { header("Location: login.php"); exit(); }
 include("conexion.php");
@@ -16,6 +16,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id_prod = intval($_POST['id']);
     $cantidad_venta = intval($_POST['cantidad']);
     $stock_actual = intval($_POST['stock_actual']);
+    
+    // Obtenemos los datos del producto nuevamente para asegurar precisión
+    $prod_res = $conexion->query("SELECT nombre, precio_venta FROM productos WHERE id = $id_prod");
+    $p = $prod_res->fetch_assoc();
+    
     $precio = $p['precio_venta'];
     $nombre_p = $p['nombre'];
     $vendedor = $_SESSION['usuario'];
@@ -26,9 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $nueva_cantidad = $stock_actual - $cantidad_venta;
         $conexion->query("UPDATE productos SET stock = $nueva_cantidad WHERE id = $id_prod");
 
-        // 2. REGISTRAR EN TABLA VENTAS
-        $sql_venta = "INSERT INTO ventas (producto_id, nombre_producto, cantidad, precio_unidad, total_venta, vendedor) 
-                      VALUES ($id_prod, '$nombre_p', $cantidad_venta, $precio, $total, '$vendedor')";
+        // 2. REGISTRAR EN TABLA VENTAS (Sin precio_unidad que no existe en tu tabla)
+        $sql_venta = "INSERT INTO ventas (producto_id, nombre_producto, cantidad, total_venta, vendedor) 
+                      VALUES ($id_prod, '$nombre_p', $cantidad_venta, $total, '$vendedor')";
         
         if ($conexion->query($sql_venta)) {
             $venta_exitosa = true;
