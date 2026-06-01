@@ -1,14 +1,24 @@
 <?php
 session_start();
+
+// Validar inicio de sesión
 if (!isset($_SESSION['usuario'])) {
     header("Location: login.php");
     exit();
 }
+
+// Bloque de seguridad: Solo el administrador puede acceder a esta edición
+if (strtolower(trim($_SESSION['rol'] ?? '')) !== 'admin') {
+    echo "<div class='container mt-5'><div class='alert alert-danger text-center'>Acceso denegado. Solo el administrador puede editar productos.</div>";
+    echo "<div class='text-center'><a href='productos.php' class='btn btn-primary'>Volver al Inventario</a></div></div>";
+    exit();
+}
+
 include("conexion.php");
 
 // 1. Obtener los datos actuales del producto
 if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+    $id = intval($_GET['id']);
     $sql = "SELECT * FROM productos WHERE id = $id";
     $resultado = $conexion->query($sql);
     $producto = $resultado->fetch_assoc();
@@ -16,23 +26,19 @@ if (isset($_GET['id'])) {
 
 // 2. Lógica para guardar los cambios
 if ($_POST) {
-    $id = $_POST['id'];
-    $nombre = $_POST['nombre'];
-    $categoria = $_POST['categoria'];
-    $factura = $_POST['factura']; 
-    $p_compra = $_POST['precio_compra'];
-    $p_venta = $_POST['precio_venta'];
-    $stock = $_POST['stock'];
-    $stock_inicial = $_POST['stock_inicial']; 
-
-    $nombre_db = $conexion->real_escape_string($nombre);
-    $categoria_db = $conexion->real_escape_string($categoria);
-    $factura_db = $conexion->real_escape_string($factura);
+    $id = intval($_POST['id']);
+    $nombre = $conexion->real_escape_string($_POST['nombre']);
+    $categoria = $conexion->real_escape_string($_POST['categoria']);
+    $factura = $conexion->real_escape_string($_POST['factura']); 
+    $p_compra = floatval($_POST['precio_compra']);
+    $p_venta = floatval($_POST['precio_venta']);
+    $stock = intval($_POST['stock']);
+    $stock_inicial = intval($_POST['stock_inicial']); 
 
     $sql_update = "UPDATE productos SET 
-                    nombre='$nombre_db', 
-                    categoria='$categoria_db', 
-                    factura='$factura_db', 
+                    nombre='$nombre', 
+                    categoria='$categoria', 
+                    factura='$factura', 
                     precio_compra=$p_compra, 
                     precio_venta=$p_venta, 
                     stock=$stock,
