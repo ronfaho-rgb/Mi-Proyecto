@@ -1,10 +1,14 @@
 <?php
 date_default_timezone_set('America/Managua');
 session_start();
+
+// Validar inicio de sesión y rol de administrador
 if (!isset($_SESSION['usuario']) || strtolower(trim($_SESSION['rol'] ?? '')) !== 'admin') {
-    header("Location: index.php");
+    echo "<div class='container mt-5'><div class='alert alert-danger'>Acceso denegado. Solo el administrador puede ver esta sección.</div>";
+    echo "<a href='productos.php' class='btn btn-primary'>Volver al Inventario</a></div>";
     exit();
 }
+
 include("conexion.php");
 
 // --- LÓGICA PARA ANULAR VENTA ---
