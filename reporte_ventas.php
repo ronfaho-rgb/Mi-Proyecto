@@ -11,7 +11,6 @@ include("conexion.php");
 if (isset($_GET['anular_id'])) {
     $id_venta = intval($_GET['anular_id']);
     
-    // Obtener datos: producto_id y cantidad
     $consulta = $conexion->query("SELECT producto_id, cantidad FROM ventas WHERE id = $id_venta");
     
     if ($consulta && $consulta->num_rows > 0) {
@@ -19,10 +18,7 @@ if (isset($_GET['anular_id'])) {
         $id_prod = $v['producto_id'];
         $cant = $v['cantidad'];
         
-        // Devolver stock al producto
         $conexion->query("UPDATE productos SET stock = stock + $cant WHERE id = $id_prod");
-        
-        // Borrar la venta
         $conexion->query("DELETE FROM ventas WHERE id = $id_venta");
         
         echo "<script>window.location='reporte_ventas.php?msj=ok';</script>";
@@ -30,15 +26,15 @@ if (isset($_GET['anular_id'])) {
     }
 }
 
-// Consultas de Ventas (Caja)
-$hoy = $conexion->query("SELECT SUM(total_venta) as total FROM ventas WHERE DATE(fecha) = CURDATE()")->fetch_assoc()['total'] ?? 0;
-$mes = $conexion->query("SELECT SUM(total_venta) as total FROM ventas WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())")->fetch_assoc()['total'] ?? 0;
-$anio = $conexion->query("SELECT SUM(total_venta) as total FROM ventas WHERE YEAR(fecha) = YEAR(CURDATE())")->fetch_assoc()['total'] ?? 0;
+// Consultas de Ventas (Caja) - Detecta automáticamente el nombre de la columna
+$columna = ($conexion->query("SHOW COLUMNS FROM ventas LIKE 'total_venta'")->num_rows > 0) ? "total_venta" : "total";
 
-// Consulta de Inversión (Calculado con precio de compra para ser real)
+$hoy = $conexion->query("SELECT SUM($columna) as total FROM ventas WHERE DATE(fecha) = CURDATE()")->fetch_assoc()['total'] ?? 0;
+$mes = $conexion->query("SELECT SUM($columna) as total FROM ventas WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())")->fetch_assoc()['total'] ?? 0;
+$anio = $conexion->query("SELECT SUM($columna) as total FROM ventas WHERE YEAR(fecha) = YEAR(CURDATE())")->fetch_assoc()['total'] ?? 0;
+
 $total_valor = $conexion->query("SELECT SUM(precio_compra * stock) as total FROM productos")->fetch_assoc()['total'] ?? 0;
 
-// Listado de transacciones
 $ultimas_ventas = $conexion->query("SELECT * FROM ventas ORDER BY fecha DESC LIMIT 20");
 ?>
 <!DOCTYPE html>
@@ -50,10 +46,7 @@ $ultimas_ventas = $conexion->query("SELECT * FROM ventas ORDER BY fecha DESC LIM
     <style>
         body { background-color: #f0f3f6; font-family: 'Segoe UI', sans-serif; }
         .header-top { background: white; border-radius: 15px; padding: 15px 25px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .main-banner { 
-            background-color: #1a2c4e; border-radius: 25px; color: white; padding: 30px; margin-top: 20px;
-            text-align: center; box-shadow: 0 10px 30px rgba(26, 44, 78, 0.15);
-        }
+        .main-banner { background-color: #1a2c4e; border-radius: 25px; color: white; padding: 30px; margin-top: 20px; text-align: center; box-shadow: 0 10px 30px rgba(26, 44, 78, 0.15); }
         .stat-card { border: none; border-radius: 20px; color: white; padding: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         .bg-profesional-1 { background-color: #2c3e50; } 
         .bg-profesional-2 { background-color: #16a085; } 
@@ -124,17 +117,17 @@ $ultimas_ventas = $conexion->query("SELECT * FROM ventas ORDER BY fecha DESC LIM
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while($v = $ultimas_ventas->fetch_assoc()): ?>
+                    <?php while($v = $ultimas_ventas->fetch_assoc()): 
+                        $monto = $v['total_venta'] ?? $v['total'];
+                    ?>
                     <tr>
                         <td class="small text-muted"><?php echo date('d/m H:i', strtotime($v['fecha'])); ?></td>
                         <td class="fw-bold"><?php echo $v['nombre_producto']; ?></td>
                         <td class="text-center"><?php echo $v['cantidad']; ?></td>
-                        <td class="text-end fw-bold text-success">C$ <?php echo number_format($v['total_venta'], 2); ?></td>
+                        <td class="text-end fw-bold text-success">C$ <?php echo number_format($monto, 2); ?></td>
                         <td class="text-center small"><?php echo $v['vendedor']; ?></td>
                         <td class="text-center">
-                            <a href="reporte_ventas.php?anular_id=<?php echo $v['id']; ?>" 
-                               class="btn btn-outline-danger btn-sm"
-                               onclick="return confirm('¿Anular esta venta? El stock regresará.');">X</a>
+                            <a href="reporte_ventas.php?anular_id=<?php echo $v['id']; ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Anular esta venta?');">X</a>
                         </td>
                     </tr>
                     <?php endwhile; ?>
