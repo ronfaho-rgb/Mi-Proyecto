@@ -1,35 +1,25 @@
 <?php
-// Forzamos que la sesión se inicie limpiamente
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include("conexion.php");
 
-// --- INICIO DE REPARACIÓN AUTOMÁTICA ---
-// Esta línea actualizará la base de datos con el formato correcto de SHA256 que tu servidor necesita
-$clave_reparar = hash('sha256', 'Abril2026**');
-$conexion->query("UPDATE usuarios SET password='$clave_reparar' WHERE usuario='admin'");
-// --- FIN DE REPARACIÓN ---
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
     $usuario = $conexion->real_escape_string($_POST['usuario']);
     $password = hash('sha256', $_POST['password']);
 
-    // Traemos todos los datos, incluyendo la columna 'rol'
+    // Consultamos usuario y rol
     $sql = "SELECT * FROM usuarios WHERE usuario='$usuario' AND password='$password'";
     $resultado = $conexion->query($sql);
 
     if ($resultado && $resultado->num_rows > 0) {
         $datos = $resultado->fetch_assoc();
         
-        // REGENERAR ID DE SESIÓN (Seguridad)
         session_regenerate_id(true);
         
         $_SESSION['usuario'] = $datos['usuario'];
-        $_SESSION['rol'] = $datos['rol']; 
+        $_SESSION['rol'] = $datos['rol']; // 'admin' o 'vendedor'
 
-        // Redirigimos al index
         header("Location: index.php");
         exit();
     } else {
@@ -37,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -54,20 +43,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
-
 <div class="card login-card">
     <div class="text-center mb-4">
         <div style="font-size: 50px;">📦</div>
         <h2 class="fw-bold text-dark">Librería Ebenezer</h2>
         <p class="text-muted">Acceso al Sistema</p>
     </div>
-
     <?php if (isset($error)): ?>
-        <div class="alert alert-danger p-2 text-center" style="font-size: 0.85rem; border-radius: 10px;">
-            <?php echo $error; ?>
-        </div>
+        <div class="alert alert-danger p-2 text-center" style="font-size: 0.85rem; border-radius: 10px;"><?php echo $error; ?></div>
     <?php endif; ?>
-
     <form method="POST">
         <div class="mb-3">
             <label class="form-label small fw-bold">Nombre de Usuario</label>
@@ -77,11 +61,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label class="form-label small fw-bold">Contraseña</label>
             <input type="password" name="password" class="form-control" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="btn btn-primary w-100 fw-bold p-3 shadow-sm">
-            Entrar ahora
-        </button>
+        <button type="submit" class="btn btn-primary w-100 fw-bold p-3 shadow-sm">Entrar ahora</button>
     </form>
 </div>
-
 </body>
 </html>
