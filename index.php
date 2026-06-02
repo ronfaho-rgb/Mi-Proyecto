@@ -1,5 +1,5 @@
 <?php
-date_default_timezone_set('America/Managua');
+    date_default_timezone_set('America/Managua');
 session_start();
 if (!isset($_SESSION['usuario'])) {
     header("Location: login.php");
@@ -61,6 +61,7 @@ if ($rol_usuario === 'admin') {
                 <small>Productos Únicos</small>
             </div>
         </div>
+        
         <div class="col-md-3">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
                 <h6>STOCK TOTAL</h6>
@@ -68,6 +69,7 @@ if ($rol_usuario === 'admin') {
                 <small>Unidades en Estantería</small>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #ff9966, #ff5e62);">
                 <h6>VALOR TOTAL</h6>
@@ -75,6 +77,7 @@ if ($rol_usuario === 'admin') {
                 <small>Inversión Estimada</small>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #ee0979, #ff6a00);">
                 <h6>STOCK BAJO</h6>
