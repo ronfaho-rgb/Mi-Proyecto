@@ -1,5 +1,5 @@
 <?php
-    date_default_timezone_set('America/Managua');
+date_default_timezone_set('America/Managua');
 session_start();
 if (!isset($_SESSION['usuario'])) {
     header("Location: login.php");
@@ -52,6 +52,7 @@ if ($rol_usuario === 'admin') {
 </nav>
 
 <div class="container">
+    <?php if ($rol_usuario === 'admin'): ?>
     <div class="row g-4 mb-5 text-center justify-content-center">
         <div class="col-md-3">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #00dbde, #fc00ff);">
@@ -60,7 +61,6 @@ if ($rol_usuario === 'admin') {
                 <small>Productos Únicos</small>
             </div>
         </div>
-        
         <div class="col-md-3">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
                 <h6>STOCK TOTAL</h6>
@@ -68,17 +68,13 @@ if ($rol_usuario === 'admin') {
                 <small>Unidades en Estantería</small>
             </div>
         </div>
-
-        <?php if ($rol_usuario === 'admin'): ?>
-            <div class="col-md-3">
-                <div class="card-custom shadow" style="background: linear-gradient(45deg, #ff9966, #ff5e62);">
-                    <h6>VALOR TOTAL</h6>
-                    <h3>C$ <?php echo number_format($total_valor, 2); ?></h3>
-                    <small>Inversión Estimada</small>
-                </div>
+        <div class="col-md-3">
+            <div class="card-custom shadow" style="background: linear-gradient(45deg, #ff9966, #ff5e62);">
+                <h6>VALOR TOTAL</h6>
+                <h3>C$ <?php echo number_format($total_valor, 2); ?></h3>
+                <small>Inversión Estimada</small>
             </div>
-        <?php endif; ?>
-
+        </div>
         <div class="col-md-3">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #ee0979, #ff6a00);">
                 <h6>STOCK BAJO</h6>
@@ -87,6 +83,7 @@ if ($rol_usuario === 'admin') {
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="row g-4 text-center">
         <?php if ($rol_usuario === 'admin'): ?>
@@ -98,7 +95,6 @@ if ($rol_usuario === 'admin') {
                     <a href="productos.php" class="btn btn-primary w-100 btn-action mt-auto">Ver Listado</a>
                 </div>
             </div>
-
             <div class="col-md-3">
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📥</div>
@@ -107,7 +103,6 @@ if ($rol_usuario === 'admin') {
                     <a href="agregar.php" class="btn btn-success w-100 btn-action mt-auto">Nuevo Producto</a>
                 </div>
             </div>
-
             <div class="col-md-3">
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📤</div>
@@ -116,7 +111,6 @@ if ($rol_usuario === 'admin') {
                     <a href="importar.php" class="btn btn-info text-white w-100 btn-action mt-auto">Subir Archivo</a>
                 </div>
             </div>
-
             <div class="col-md-3">
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📊</div>
@@ -125,7 +119,6 @@ if ($rol_usuario === 'admin') {
                     <a href="dashboard.php" class="btn btn-warning w-100 btn-action mt-auto">Ver Gráficos</a>
                 </div>
             </div>
-
         <?php else: ?>
             <div class="col-md-4">
                 <div class="card card-menu p-4 shadow-sm">
