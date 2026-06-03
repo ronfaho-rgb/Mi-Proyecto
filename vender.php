@@ -2,8 +2,8 @@
 session_start();
 
 // Configuración de errores debajo de la sesión para evitar conflictos de headers
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+//error_reporting(E_ALL);
+//ini_set('display_errors', 1);
 
 date_default_timezone_set('America/Managua');
 
