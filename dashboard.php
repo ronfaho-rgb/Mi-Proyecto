@@ -33,18 +33,24 @@ if($res_cat){
 $res_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0");
 $total_valor = ($res_valor && ($row = $res_valor->fetch_assoc())) ? (float)$row['total'] : 0.00;
 
-// 4. CORRECCIÓN: Datos de Ventas de Servicios (Solo lo vendido HOY)
+// 4. Datos de Ventas de Servicios
 $alquiler_costo = 6537.24;
-// Se añadió el filtro DATE(fecha) = CURDATE() para que coincida con tus ventas diarias
+
+// Ventas HOY
 $sql_ingresos_servicios = "SELECT IFNULL(SUM(total_venta), 0) as total FROM ventas WHERE es_servicio = 1 AND DATE(fecha) = CURDATE()";
 $res_servicios = $conexion->query($sql_ingresos_servicios);
-$total_servicios = 0.00;
-if ($res_servicios) {
-    $row_serv = $res_servicios->fetch_assoc();
-    $total_servicios = (float)$row_serv['total'];
-}
+$total_servicios = ($res_servicios) ? (float)$res_servicios->fetch_assoc()['total'] : 0.00;
 
-$diferencia_rentabilidad = $total_servicios - $alquiler_costo;
+// Ventas MES ACTUAL
+$sql_mes = "SELECT IFNULL(SUM(total_venta), 0) as total_mes 
+            FROM ventas 
+            WHERE es_servicio = 1 
+            AND MONTH(fecha) = MONTH(CURDATE()) 
+            AND YEAR(fecha) = YEAR(CURDATE())";
+$res_mes = $conexion->query($sql_mes);
+$total_mes = ($res_mes) ? (float)$res_mes->fetch_assoc()['total_mes'] : 0.00;
+
+$diferencia_rentabilidad = $total_mes - $alquiler_costo;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -76,22 +82,22 @@ $diferencia_rentabilidad = $total_servicios - $alquiler_costo;
         </div>
         <div class="col-md-3">
             <div class="card p-3 shadow-sm bg-white">
-                <small class="text-uppercase text-muted fs-7">Ventas Servicios (HOY)</small>
+                <small class="text-uppercase text-muted fs-7">Ventas Hoy</small>
                 <h5 class="fw-bold mb-0 text-dark">C$ <?php echo number_format($total_servicios, 2); ?></h5>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card p-3 shadow-sm bg-white">
-                <small class="text-uppercase text-muted fs-7">Estado Impresora</small>
-                <h5 class="fw-bold mb-0 <?php echo ($diferencia_rentabilidad >= 0) ? 'text-success' : 'text-danger'; ?>">
-                    C$ <?php echo number_format($diferencia_rentabilidad, 2); ?>
-                </h5>
+                <small class="text-uppercase text-muted fs-7">Acumulado Mes</small>
+                <h5 class="fw-bold mb-0 text-primary">C$ <?php echo number_format($total_mes, 2); ?></h5>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card p-3 shadow-sm bg-white">
-                <small class="text-uppercase text-muted fs-7">Alquiler: C$ <?php echo number_format($alquiler_costo, 2); ?></small>
-                <a href="descargar_inventario.php" class="btn btn-sm btn-info text-white fw-bold mt-1">Exportar Excel</a>
+                <small class="text-uppercase text-muted fs-7">Rentabilidad (vs Alquiler)</small>
+                <h5 class="fw-bold mb-0 <?php echo ($diferencia_rentabilidad >= 0) ? 'text-success' : 'text-danger'; ?>">
+                    C$ <?php echo number_format($diferencia_rentabilidad, 2); ?>
+                </h5>
             </div>
         </div>
     </div>
