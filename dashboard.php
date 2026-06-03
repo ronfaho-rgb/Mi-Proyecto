@@ -33,16 +33,15 @@ if($res_cat){
 $res_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0");
 $total_valor = ($res_valor && ($row = $res_valor->fetch_assoc())) ? (float)$row['total'] : 0.00;
 
-// 4. CORRECCIÓN: Datos de Ventas de Servicios
-// He simplificado la consulta. Si tu tabla de ventas guarda el subtotal, usamos 'total_venta' 
-// y verificamos que 'es_servicio' sea igual a 1.
+// 4. CORRECCIÓN: Datos de Ventas de Servicios (Solo lo vendido HOY)
 $alquiler_costo = 6537.24;
-$sql_ingresos_servicios = "SELECT SUM(total_venta) as total FROM ventas WHERE es_servicio = 1";
+// Se añadió el filtro DATE(fecha) = CURDATE() para que coincida con tus ventas diarias
+$sql_ingresos_servicios = "SELECT IFNULL(SUM(total_venta), 0) as total FROM ventas WHERE es_servicio = 1 AND DATE(fecha) = CURDATE()";
 $res_servicios = $conexion->query($sql_ingresos_servicios);
 $total_servicios = 0.00;
 if ($res_servicios) {
     $row_serv = $res_servicios->fetch_assoc();
-    $total_servicios = (float)($row_serv['total'] ?? 0);
+    $total_servicios = (float)$row_serv['total'];
 }
 
 $diferencia_rentabilidad = $total_servicios - $alquiler_costo;
@@ -77,7 +76,7 @@ $diferencia_rentabilidad = $total_servicios - $alquiler_costo;
         </div>
         <div class="col-md-3">
             <div class="card p-3 shadow-sm bg-white">
-                <small class="text-uppercase text-muted fs-7">Ventas Servicios</small>
+                <small class="text-uppercase text-muted fs-7">Ventas Servicios (HOY)</small>
                 <h5 class="fw-bold mb-0 text-dark">C$ <?php echo number_format($total_servicios, 2); ?></h5>
             </div>
         </div>
