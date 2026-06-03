@@ -33,12 +33,17 @@ if($res_cat){
 $res_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0");
 $total_valor = ($res_valor && ($row = $res_valor->fetch_assoc())) ? (float)$row['total'] : 0.00;
 
-// 4. Datos del Alquiler y Servicios (Corregido para evitar NULL)
+// 4. CORRECCIÓN: Datos de Ventas de Servicios
+// He simplificado la consulta. Si tu tabla de ventas guarda el subtotal, usamos 'total_venta' 
+// y verificamos que 'es_servicio' sea igual a 1.
 $alquiler_costo = 6537.24;
-$sql_ingresos_servicios = "SELECT SUM(total_venta) as total_servicios FROM ventas WHERE es_servicio = 1";
+$sql_ingresos_servicios = "SELECT SUM(total_venta) as total FROM ventas WHERE es_servicio = 1";
 $res_servicios = $conexion->query($sql_ingresos_servicios);
-$row_serv = $res_servicios->fetch_assoc();
-$total_servicios = ($row_serv && $row_serv['total_servicios'] !== null) ? (float)$row_serv['total_servicios'] : 0.00;
+$total_servicios = 0.00;
+if ($res_servicios) {
+    $row_serv = $res_servicios->fetch_assoc();
+    $total_servicios = (float)($row_serv['total'] ?? 0);
+}
 
 $diferencia_rentabilidad = $total_servicios - $alquiler_costo;
 ?>
@@ -63,7 +68,6 @@ $diferencia_rentabilidad = $total_servicios - $alquiler_costo;
         <a href="index.php" class="btn btn-outline-dark btn-sm">Inicio</a>
     </div>
 
-    <!-- Tarjetas compactas y profesionales -->
     <div class="row g-3 mb-4 text-center">
         <div class="col-md-3">
             <div class="card p-3 shadow-sm" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
