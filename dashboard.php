@@ -33,8 +33,12 @@ if($res_cat){
 $res_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0");
 $total_valor = ($res_valor) ? $res_valor->fetch_assoc()['total'] : 0;
 
-// 4. Datos del Alquiler
+// 4. Datos del Alquiler y Servicios
 $alquiler_costo = 6537.24;
+$sql_ingresos_servicios = "SELECT SUM(total_venta) as total_servicios FROM ventas WHERE es_servicio = 1";
+$res_servicios = $conexion->query($sql_ingresos_servicios);
+$total_servicios = ($res_servicios) ? $res_servicios->fetch_assoc()['total_servicios'] : 0;
+$diferencia_rentabilidad = $total_servicios - $alquiler_costo;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -50,13 +54,9 @@ $alquiler_costo = 6537.24;
         .card { border: none; border-radius: 20px; transition: 0.3s; }
         .report-card { background: white; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .chart-container { position: relative; height: 320px; width: 100%; }
-        .gradient-custom { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; border-radius: 20px;
-        }
+        .gradient-custom { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; }
         .bg-alquiler { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .btn-exportar { background-color: #00d1ff; border: none; color: white; font-weight: bold; }
-        .btn-exportar:hover { background-color: #00b8e6; color: white; }
     </style>
 </head>
 <body class="container py-4">
@@ -72,84 +72,53 @@ $alquiler_costo = 6537.24;
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-md-5">
+        <div class="col-md-3">
             <div class="card gradient-custom p-4 shadow h-100 text-center">
-                <h6 class="text-uppercase opacity-75 small">Inversión en Venta (Productos)</h6>
-                <h2 class="fw-bold">C$ <?php echo number_format($total_valor, 2); ?></h2>
-                <hr class="opacity-25">
-                <h6 class="text-uppercase opacity-75 small">Fecha de Corte</h6>
-                <h4 class="fw-bold m-0"><?php echo date('d/m/Y'); ?></h4>
+                <h6>Inversión Venta</h6>
+                <h3 class="fw-bold">C$ <?php echo number_format($total_valor, 2); ?></h3>
             </div>
         </div>
-
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-alquiler p-4 shadow h-100 text-center">
-                <h6 class="text-uppercase fw-bold small">Costo Alquiler Impresora</h6>
-                <h3 class="fw-bold text-dark">C$ <?php echo number_format($alquiler_costo, 2); ?></h3>
-                <hr>
-                <p class="m-0 small text-muted">Gestión de servicios activa</p>
+                <h6>Ventas Servicios</h6>
+                <h3 class="fw-bold">C$ <?php echo number_format($total_servicios, 2); ?></h3>
             </div>
         </div>
-
         <div class="col-md-3">
             <div class="card p-4 shadow h-100 text-center bg-white">
-                <div class="mb-3">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3580/3580085.png" width="50" alt="Descargar">
-                </div>
-                <h5 class="fw-bold">Exportar</h5>
-                <p class="text-muted small">Descargar inventario en Excel</p>
-                <a href="descargar_inventario.php" class="btn btn-exportar w-100 py-2">Descargar Excel</a>
+                <h6>Estado Impresora</h6>
+                <h3 class="fw-bold <?php echo ($diferencia_rentabilidad >= 0) ? 'text-success' : 'text-danger'; ?>">
+                    C$ <?php echo number_format($diferencia_rentabilidad, 2); ?>
+                </h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 shadow h-100 text-center bg-white">
+                <p class="small text-muted">Costo Alquiler: C$ <?php echo number_format($alquiler_costo, 2); ?></p>
+                <a href="descargar_inventario.php" class="btn btn-exportar w-100">Exportar Excel</a>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-5">
-            <div class="card report-card h-100 shadow-sm">
-                <h5 class="fw-bold text-dark mb-4 text-center">Distribución por Categoría</h5>
-                <div class="chart-container">
-                    <canvas id="graficaCategorias"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-7">
-            <div class="card report-card h-100 shadow-sm">
-                <h5 class="fw-bold text-dark mb-4 text-center">Niveles de Stock (Top 10)</h5>
-                <div class="chart-container">
-                    <canvas id="graficaStock"></canvas>
-                </div>
-            </div>
-        </div>
+        <div class="col-md-5"><div class="card report-card h-100"><canvas id="graficaCategorias"></canvas></div></div>
+        <div class="col-md-7"><div class="card report-card h-100"><canvas id="graficaStock"></canvas></div></div>
     </div>
 
     <script>
-        const ctxStock = document.getElementById('graficaStock').getContext('2d');
-        new Chart(ctxStock, {
+        new Chart(document.getElementById('graficaStock').getContext('2d'), {
             type: 'bar',
             data: {
                 labels: <?php echo json_encode($nombres); ?>,
-                datasets: [{
-                    label: 'Unidades',
-                    data: <?php echo json_encode($cantidades); ?>,
-                    backgroundColor: '#4e73df',
-                    borderRadius: 8
-                }]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                datasets: [{ data: <?php echo json_encode($cantidades); ?>, backgroundColor: '#4e73df' }]
+            }, options: { maintainAspectRatio: false }
         });
-
-        const ctxCat = document.getElementById('graficaCategorias').getContext('2d');
-        new Chart(ctxCat, {
+        new Chart(document.getElementById('graficaCategorias').getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: <?php echo json_encode($cat_nombres); ?>,
-                datasets: [{
-                    data: <?php echo json_encode($cat_totales); ?>,
-                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'],
-                }]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                datasets: [{ data: <?php echo json_encode($cat_totales); ?>, backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'] }]
+            }, options: { maintainAspectRatio: false }
         });
     </script>
 </body>
