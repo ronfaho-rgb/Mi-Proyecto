@@ -98,6 +98,7 @@ $diferencia_rentabilidad = $total_mes - $alquiler_costo;
                 <h5 class="fw-bold mb-0 <?php echo ($diferencia_rentabilidad >= 0) ? 'text-success' : 'text-danger'; ?>">
                     C$ <?php echo number_format($diferencia_rentabilidad, 2); ?>
                 </h5>
+                <a href="descargar_inventario.php" class="btn btn-sm btn-info text-white fw-bold mt-2">Exportar Excel</a>
             </div>
         </div>
     </div>
