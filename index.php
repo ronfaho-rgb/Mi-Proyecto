@@ -1,5 +1,5 @@
 <?php
-    date_default_timezone_set('America/Managua');
+date_default_timezone_set('America/Managua');
 session_start();
 if (!isset($_SESSION['usuario'])) {
     header("Location: login.php");
@@ -11,15 +11,15 @@ include("conexion.php");
 // Limpieza de rol para asegurar la validación
 $rol_usuario = strtolower(trim($_SESSION['rol'] ?? 'vendedor'));
 
-// Consultas de datos
-$total_prod = $conexion->query("SELECT COUNT(*) as total FROM productos")->fetch_assoc()['total'];
-$stock_total = $conexion->query("SELECT SUM(stock) as total FROM productos")->fetch_assoc()['total'];
-$stock_bajo = $conexion->query("SELECT COUNT(*) as total FROM productos WHERE stock <= 5")->fetch_assoc()['total'];
+// Consultas de datos (Filtrando servicios con es_servicio = 0)
+$total_prod = $conexion->query("SELECT COUNT(*) as total FROM productos WHERE es_servicio = 0")->fetch_assoc()['total'];
+$stock_total = $conexion->query("SELECT SUM(stock) as total FROM productos WHERE es_servicio = 0")->fetch_assoc()['total'];
+$stock_bajo = $conexion->query("SELECT COUNT(*) as total FROM productos WHERE stock <= 5 AND es_servicio = 0")->fetch_assoc()['total'];
 
 // Solo calculamos el valor si es admin para ahorrar recursos
 $total_valor = 0;
 if ($rol_usuario === 'admin') {
-    $total_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos")->fetch_assoc()['total'];
+    $total_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0")->fetch_assoc()['total'];
 }
 ?>
 <!DOCTYPE html>
