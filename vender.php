@@ -1,7 +1,8 @@
+<?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-<?php
+
 date_default_timezone_set('America/Managua');
 session_start();
 if (!isset($_SESSION['usuario'])) { header("Location: login.php"); exit(); }
