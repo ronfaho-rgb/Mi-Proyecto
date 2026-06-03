@@ -16,10 +16,12 @@ $total_prod = $conexion->query("SELECT COUNT(*) as total FROM productos WHERE es
 $stock_total = $conexion->query("SELECT SUM(stock) as total FROM productos WHERE es_servicio = 0")->fetch_assoc()['total'];
 $stock_bajo = $conexion->query("SELECT COUNT(*) as total FROM productos WHERE stock <= 5 AND es_servicio = 0")->fetch_assoc()['total'];
 
-// Solo calculamos el valor si es admin para ahorrar recursos
+// Solo calculamos si es admin para ahorrar recursos
 $total_valor = 0;
+$ganancia_total = 0;
 if ($rol_usuario === 'admin') {
     $total_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0")->fetch_assoc()['total'];
+    $ganancia_total = $conexion->query("SELECT SUM((precio_venta - precio_compra) * stock) as total FROM productos WHERE es_servicio = 0")->fetch_assoc()['total'];
 }
 ?>
 <!DOCTYPE html>
@@ -31,7 +33,7 @@ if ($rol_usuario === 'admin') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
-        .card-custom { border: none; border-radius: 20px; color: white; padding: 25px; transition: 0.3s; height: 100%; }
+        .card-custom { border: none; border-radius: 20px; color: white; padding: 20px 10px; transition: 0.3s; height: 100%; }
         .btn-action { border-radius: 12px; padding: 12px; font-weight: bold; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-size: 0.9rem; }
         .navbar-ebenezer { background: #1a1a1a; padding: 15px; }
         .card-menu { border-radius: 20px; border: none; transition: 0.3s; height: 100%; }
@@ -51,50 +53,49 @@ if ($rol_usuario === 'admin') {
     </div>
 </nav>
 
-<div class="container">
+<div class="container-fluid px-4">
     <?php if ($rol_usuario === 'admin'): ?>
-    <div class="row g-4 mb-5 text-center justify-content-center">
-        <div class="col-md-3">
+    <div class="row g-3 mb-5 text-center justify-content-center">
+        <!-- Tarjetas ahora ocupan col-md-2 para caber las 5 -->
+        <div class="col-md-2">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #00dbde, #fc00ff);">
-                <h6>VARIEDAD</h6>
-                <h2><?php echo $total_prod; ?></h2>
-                <small>Productos Únicos</small>
+                <small>VARIEDAD</small>
+                <h5><?php echo $total_prod; ?></h5>
             </div>
         </div>
-        
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
-                <h6>STOCK TOTAL</h6>
-                <h2><?php echo number_format($stock_total); ?></h2>
-                <small>Unidades en Estantería</small>
+                <small>STOCK TOTAL</small>
+                <h5><?php echo number_format($stock_total); ?></h5>
             </div>
         </div>
-
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #ff9966, #ff5e62);">
-                <h6>VALOR TOTAL</h6>
-                <h3>C$ <?php echo number_format($total_valor, 2); ?></h3>
-                <small>Inversión Estimada</small>
+                <small>VALOR VENTA</small>
+                <h6>C$ <?php echo number_format($total_valor, 2); ?></h6>
             </div>
         </div>
-
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <div class="card-custom shadow" style="background: linear-gradient(45deg, #6a11cb, #2575fc);">
+                <small>GANANCIA</small>
+                <h6>C$ <?php echo number_format($ganancia_total, 2); ?></h6>
+            </div>
+        </div>
+        <div class="col-md-2">
             <div class="card-custom shadow" style="background: linear-gradient(45deg, #ee0979, #ff6a00);">
-                <h6>STOCK BAJO</h6>
-                <h2><?php echo $stock_bajo; ?></h2>
-                <small>Productos por Agotarse</small>
+                <small>STOCK BAJO</small>
+                <h5><?php echo $stock_bajo; ?></h5>
             </div>
         </div>
     </div>
     <?php endif; ?>
 
-    <div class="row g-4 text-center">
+    <div class="row g-4 text-center justify-content-center">
         <?php if ($rol_usuario === 'admin'): ?>
             <div class="col-md-3">
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📋</div>
                     <h4 class="fw-bold mt-2">Gestión</h4>
-                    <p class="text-muted small">Consultar existencias.</p>
                     <a href="productos.php" class="btn btn-primary w-100 btn-action mt-auto">Ver Listado</a>
                 </div>
             </div>
@@ -102,7 +103,6 @@ if ($rol_usuario === 'admin') {
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📥</div>
                     <h4 class="fw-bold mt-2">Entradas</h4>
-                    <p class="text-muted small">Nueva mercadería.</p>
                     <a href="agregar.php" class="btn btn-success w-100 btn-action mt-auto">Nuevo Producto</a>
                 </div>
             </div>
@@ -110,7 +110,6 @@ if ($rol_usuario === 'admin') {
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📤</div>
                     <h4 class="fw-bold mt-2">Excel</h4>
-                    <p class="text-muted small">Importar masivamente.</p>
                     <a href="importar.php" class="btn btn-info text-white w-100 btn-action mt-auto">Subir Archivo</a>
                 </div>
             </div>
@@ -118,23 +117,14 @@ if ($rol_usuario === 'admin') {
                 <div class="card card-menu p-4 shadow-sm">
                     <div style="font-size: 45px;">📊</div>
                     <h4 class="fw-bold mt-2">Reportes</h4>
-                    <p class="text-muted small">Análisis y gráficos.</p>
                     <a href="dashboard.php" class="btn btn-warning w-100 btn-action mt-auto">Ver Gráficos</a>
                 </div>
             </div>
         <?php else: ?>
             <div class="col-md-4">
                 <div class="card card-menu p-4 shadow-sm">
-                    <div style="font-size: 45px;">📋</div>
-                    <h4 class="fw-bold mt-2">Inventario</h4>
-                    <p class="text-muted small">Consultar existencias disponibles.</p>
+                    <h4 class="fw-bold">Inventario</h4>
                     <a href="productos.php" class="btn btn-primary w-100 btn-action">Ver Listado</a>
-                </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card p-4 shadow-sm border-0 d-flex align-items-center justify-content-center" style="border-radius: 20px; height: 100%;">
-                    <h4 class="text-muted fw-bold">Modo Vendedor Activo</h4>
-                    <p class="mb-0 text-center">Tienes acceso limitado a la consulta de productos y stock.</p>
                 </div>
             </div>
         <?php endif; ?>
