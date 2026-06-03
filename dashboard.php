@@ -7,8 +7,8 @@ if (!isset($_SESSION['usuario'])) {
 }
 include("conexion.php");
 
-// 1. Datos para Gráfica de Barras (Top 10 Productos)
-$sql_grafica = "SELECT nombre, stock FROM productos ORDER BY stock DESC LIMIT 10";
+// 1. Datos para Gráfica de Barras (Top 10 Productos - Solo Físicos)
+$sql_grafica = "SELECT nombre, stock FROM productos WHERE es_servicio = 0 ORDER BY stock DESC LIMIT 10";
 $res_grafica = $conexion->query($sql_grafica);
 $nombres = []; $cantidades = [];
 if($res_grafica){
@@ -18,8 +18,8 @@ if($res_grafica){
     }
 }
 
-// 2. Datos para Gráfica de Dona (Distribución por Categoría)
-$sql_cat = "SELECT categoria, SUM(stock) as total FROM productos GROUP BY categoria";
+// 2. Datos para Gráfica de Dona (Distribución por Categoría - Solo Físicos)
+$sql_cat = "SELECT categoria, SUM(stock) as total FROM productos WHERE es_servicio = 0 GROUP BY categoria";
 $res_cat = $conexion->query($sql_cat);
 $cat_nombres = []; $cat_totales = [];
 if($res_cat){
@@ -29,13 +29,12 @@ if($res_cat){
     }
 }
 
-// 3. Resumen de Valor (Inversión Total en Venta)
-$res_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos");
+// 3. Resumen de Valor (Inversión Total en Venta - Solo Físicos)
+$res_valor = $conexion->query("SELECT SUM(precio_venta * stock) as total FROM productos WHERE es_servicio = 0");
 $total_valor = ($res_valor) ? $res_valor->fetch_assoc()['total'] : 0;
 
 // 4. Datos del Alquiler
 $alquiler_costo = 6537.24;
-$recaudado_servicios = 0.00; 
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -75,7 +74,7 @@ $recaudado_servicios = 0.00;
     <div class="row g-4 mb-4">
         <div class="col-md-5">
             <div class="card gradient-custom p-4 shadow h-100 text-center">
-                <h6 class="text-uppercase opacity-75 small">Inversión en Venta</h6>
+                <h6 class="text-uppercase opacity-75 small">Inversión en Venta (Productos)</h6>
                 <h2 class="fw-bold">C$ <?php echo number_format($total_valor, 2); ?></h2>
                 <hr class="opacity-25">
                 <h6 class="text-uppercase opacity-75 small">Fecha de Corte</h6>
@@ -88,7 +87,7 @@ $recaudado_servicios = 0.00;
                 <h6 class="text-uppercase fw-bold small">Costo Alquiler Impresora</h6>
                 <h3 class="fw-bold text-dark">C$ <?php echo number_format($alquiler_costo, 2); ?></h3>
                 <hr>
-                <p class="m-0 small text-muted">Pendiente de registro de servicios</p>
+                <p class="m-0 small text-muted">Gestión de servicios activa</p>
             </div>
         </div>
 
@@ -125,7 +124,6 @@ $recaudado_servicios = 0.00;
     </div>
 
     <script>
-        // Configuración Gráfica de Stock
         const ctxStock = document.getElementById('graficaStock').getContext('2d');
         new Chart(ctxStock, {
             type: 'bar',
@@ -141,7 +139,6 @@ $recaudado_servicios = 0.00;
             options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
 
-        // Configuración Gráfica de Categorías
         const ctxCat = document.getElementById('graficaCategorias').getContext('2d');
         new Chart(ctxCat, {
             type: 'doughnut',
